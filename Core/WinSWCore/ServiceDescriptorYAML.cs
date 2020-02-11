@@ -6,5 +6,6 @@ namespace winsw
 {
     class ServiceDescriptorYAML
     {
+        //this is a test comment
     }
 }
