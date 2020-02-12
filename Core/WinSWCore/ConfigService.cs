@@ -4,8 +4,7 @@ using System.Text;
 
 namespace winsw
 {
-    class ServiceDescriptorYAML
+    class ConfigService
     {
-        
     }
 }
