@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Xml;
 using winsw.Configuration;
@@ -11,6 +12,8 @@ namespace winsw
 {
     class ServiceDescriptorYAML : IWinSWConfiguration
     {
+        //confugurations
+
         public string Id => throw new NotImplementedException();
 
         public string Caption => throw new NotImplementedException();
@@ -19,7 +22,6 @@ namespace winsw
 
         public string Executable => throw new NotImplementedException();
 
-        public string ExecutablePath => throw new NotImplementedException();
 
         public bool HideWindow => throw new NotImplementedException();
 
@@ -70,5 +72,54 @@ namespace winsw
         public bool BeepOnShutdown => throw new NotImplementedException();
 
         public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
+
+
+
+        //Defauls values for configurations
+        public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+
+        /// <summary>
+        /// Where did we find the configuration file?
+        ///
+        /// This string is "c:\abc\def\ghi" when the configuration XML is "c:\abc\def\ghi.xml"
+        /// </summary>
+        public string BasePath { get; set; }
+
+        /// <summary>
+        /// The file name portion of the configuration file.
+        ///
+        /// In the above example, this would be "ghi".
+        /// </summary>
+        public string BaseName { get; set; }
+
+        public virtual string ExecutablePath => Defaults.ExecutablePath;
+
+        public ServiceDescriptorYAML()
+        {
+            string p = ExecutablePath;
+            string baseName = Path.GetFileNameWithoutExtension(p);
+
+            if (baseName.EndsWith(".vshost"))
+                baseName = baseName.Substring(0, baseName.Length - 7);
+
+            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
+            while (true)
+            {
+                if (File.Exists(Path.Combine(d.FullName, baseName + ".yaml")))
+                    break;
+
+                if (d.Parent == null)
+                    throw new FileNotFoundException("Unable to locate " + baseName + ".yaml file within executable directory or any parents");
+
+                d = d.Parent;
+            }
+
+            BaseName = baseName;
+            BasePath = Path.Combine(d.FullName, BaseName);
+
+            //deserialize the YAML here
+
+        }
+
     }
 }
