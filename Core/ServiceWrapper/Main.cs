@@ -450,6 +450,7 @@ namespace winsw
 
         public static int Main(string[] args)
         {
+            System.Diagnostics.Debugger.Launch();
             // Run app
             try
             {
