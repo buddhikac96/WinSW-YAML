@@ -7,74 +7,12 @@ using System.Xml;
 using winsw.Configuration;
 using winsw.Native;
 using WMI;
+using YamlDotNet.Serialization;
 
 namespace winsw
 {
-    class ServiceDescriptorYAML : IWinSWConfiguration
+    class ServiceDescriptorYAML
     {
-        //confugurations
-
-        public string Id => throw new NotImplementedException();
-
-        public string Caption => throw new NotImplementedException();
-
-        public string Description => throw new NotImplementedException();
-
-        public string Executable => throw new NotImplementedException();
-
-
-        public bool HideWindow => throw new NotImplementedException();
-
-        public bool AllowServiceAcountLogonRight => throw new NotImplementedException();
-
-        public string? ServiceAccountPassword => throw new NotImplementedException();
-
-        public string ServiceAccountUser => throw new NotImplementedException();
-
-        public List<SC_ACTION> FailureActions => throw new NotImplementedException();
-
-        public TimeSpan ResetFailureAfter => throw new NotImplementedException();
-
-        public string Arguments => throw new NotImplementedException();
-
-        public string? Startarguments => throw new NotImplementedException();
-
-        public string? StopExecutable => throw new NotImplementedException();
-
-        public string? Stoparguments => throw new NotImplementedException();
-
-        public string WorkingDirectory => throw new NotImplementedException();
-
-        public ProcessPriorityClass Priority => throw new NotImplementedException();
-
-        public TimeSpan StopTimeout => throw new NotImplementedException();
-
-        public bool StopParentProcessFirst => throw new NotImplementedException();
-
-        public StartMode StartMode => throw new NotImplementedException();
-
-        public string[] ServiceDependencies => throw new NotImplementedException();
-
-        public TimeSpan WaitHint => throw new NotImplementedException();
-
-        public TimeSpan SleepTime => throw new NotImplementedException();
-
-        public bool Interactive => throw new NotImplementedException();
-
-        public string LogDirectory => throw new NotImplementedException();
-
-        public string LogMode => throw new NotImplementedException();
-
-        public List<Download> Downloads => throw new NotImplementedException();
-
-        public Dictionary<string, string> EnvironmentVariables => throw new NotImplementedException();
-
-        public bool BeepOnShutdown => throw new NotImplementedException();
-
-        public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
-
-
-
         //Defauls values for configurations
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
@@ -93,6 +31,8 @@ namespace winsw
         public string BaseName { get; set; }
 
         public virtual string ExecutablePath => Defaults.ExecutablePath;
+
+        private readonly YamlConfig configurations;
 
         public ServiceDescriptorYAML()
         {
@@ -114,12 +54,37 @@ namespace winsw
                 d = d.Parent;
             }
 
-            BaseName = baseName;
+            BaseName = baseName + ".yaml";
             BasePath = Path.Combine(d.FullName, BaseName);
 
-            //deserialize the YAML here
+            //load yaml file
+            string? yamlFile = null;
+
+            using (var reader = new StreamReader(BasePath))
+            {
+                yamlFile = reader.ReadToEnd();
+            }
+
+            var deserializer = new DeserializerBuilder().Build();
+
+            configurations = deserializer.Deserialize<YamlConfig>(yamlFile);
+
+            // register the base directory as environment variable so that future expansions can refer to this.
+            Environment.SetEnvironmentVariable("BASE", d.FullName);
+
+            // ditto for ID
+            Environment.SetEnvironmentVariable("SERVICE_ID", configurations.Id);
+
+            // New name
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, ExecutablePath);
+
+            // Also inject system environment variables
+            Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
 
         }
 
+        
+
     }
+
 }
