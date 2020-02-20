@@ -450,7 +450,7 @@ namespace winsw
 
         public static int Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             // Run app
             try
             {
@@ -492,6 +492,7 @@ namespace winsw
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             var d = descriptor ?? new ServiceDescriptor();
+            var yd = new ServiceDescriptorYAML();
 
             // Configure the wrapper-internal logging.
             // STDIN and STDOUT of the child process will be handled independently.

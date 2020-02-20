@@ -11,7 +11,7 @@ using YamlDotNet.Serialization;
 
 namespace winsw
 {
-    class ServiceDescriptorYAML
+    public class ServiceDescriptorYAML
     {
         //Defauls values for configurations
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
@@ -65,8 +65,10 @@ namespace winsw
                 yamlFile = reader.ReadToEnd();
             }
 
+            //Initialize the Deserailizer
             var deserializer = new DeserializerBuilder().Build();
 
+            //deserialize the yaml
             configurations = deserializer.Deserialize<YamlConfig>(yamlFile);
 
             // register the base directory as environment variable so that future expansions can refer to this.
@@ -81,10 +83,11 @@ namespace winsw
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
 
+            Console.WriteLine(configurations.Id);
+
         }
 
-        
-
+       
     }
 
 }
