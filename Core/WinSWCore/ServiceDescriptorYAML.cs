@@ -84,7 +84,7 @@ namespace winsw
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
 
-            Console.WriteLine(configurations.Id);
+            Console.WriteLine(SingleElement("Id"));
 
         }
 
@@ -114,6 +114,19 @@ namespace winsw
 
             return node == null ? defaultValue : bool.Parse(node.ToString());
         }
+
+        private int SingleIntElement(string tagName, int defaultValue)
+        {
+            var node = configurations.GetType().GetProperty(tagName).GetValue(configurations, null);
+
+            return node == null ? defaultValue : int.Parse(node.ToString());
+        }
+
+        public string Executable => SingleElement("executable");
+       
+        public bool HideWindow => SingleBoolElement("hidewindow", Defaults.HideWindow);
+
+        public string? StopExecutable => SingleElement("stopexecutable", true);
     }
 
 }
