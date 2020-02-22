@@ -8,6 +8,8 @@ using winsw.Configuration;
 using winsw.Native;
 using WMI;
 using YamlDotNet.Serialization;
+using System.Linq;
+using System.Collections;
 
 namespace winsw
 {
@@ -165,6 +167,43 @@ namespace winsw
         public bool HideWindow => SingleBoolElement("hidewindow", Defaults.HideWindow);
 
         public string? StopExecutable => SingleElement("stopexecutable", true);
-    }
 
+        private string? AppendTags(string tagName, string? defaultValue = null)
+        {
+            var argumentNode = configurations.GetType().GetProperty(tagName);
+            if(argumentNode == null)
+            {
+                return defaultValue;
+            }
+
+            var arguments = new StringBuilder();
+            var argumentNodeList = (IList<string>)configurations.GetType().GetProperty(tagName).GetValue(configurations, null);
+
+            for (int i = 0; i < argumentNodeList.Count; i++)
+            {
+                arguments.Append(' ');
+
+                string token = Environment.ExpandEnvironmentVariables(argumentNodeList[i].InnerText);
+
+                if (token.StartsWith("\"") && token.EndsWith("\""))
+                {
+                    // for backward compatibility, if the argument is already quoted, leave it as is.
+                    // in earlier versions we didn't handle quotation, so the user might have worked
+                    // around it by themselves
+                }
+                else
+                {
+                    if (token.Contains(" "))
+                    {
+                        arguments.Append('"').Append(token).Append('"');
+                        continue;
+                    }
+                }
+
+                arguments.Append(token);
+            }
+
+            return arguments.ToString();
+        }
+    }
 }
