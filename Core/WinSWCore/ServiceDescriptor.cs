@@ -266,6 +266,8 @@ namespace winsw
             {
                 arguments.Append(' ');
 
+                //Here arguments should be writtein in the manner of able to to replace environment details
+                //Then Environment.ExpanEnvironmentVariables() method can replace that values in runtime
                 string token = Environment.ExpandEnvironmentVariables(argumentNodeList[i].InnerText);
 
                 if (token.StartsWith("\"") && token.EndsWith("\""))

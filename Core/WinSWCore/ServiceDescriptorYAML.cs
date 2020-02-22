@@ -168,6 +168,45 @@ namespace winsw
 
         public string? StopExecutable => SingleElement("stopexecutable", true);
 
+
+        public string Arguments
+        {
+            get
+            {
+                string? arguments = AppendTags("argument", null);
+                if(arguments == null)
+                {
+                    var argumentsNode = configurations.GetType().GetProperty("arguments").GetValue(configurations, null).ToString();
+                    
+                    if(argumentsNode == null)
+                    {
+                        return Defaults.Arguments;
+                    }
+
+                    return argumentsNode;
+                }
+                else
+                {
+                    return arguments;
+                }
+            }
+        }
+
+        public string? Startarguments => AppendTags("startargument", Defaults.Startarguments);
+
+        public string? Stoparguments => AppendTags("stopargument", Defaults.Stoparguments);
+
+        public string WorkingDirectory
+        {
+            get
+            {
+                var wd = SingleElement("workingdirectory", true);
+                return string.IsNullOrEmpty(wd) ? Defaults.WorkingDirectory : wd!;
+            }
+        }
+
+        public string ExtensionsConfiguration => configurations.GetType().GetProperty("extensions").GetValue(configurations, null).ToString();
+
         private string? AppendTags(string tagName, string? defaultValue = null)
         {
             var argumentNode = configurations.GetType().GetProperty(tagName);
@@ -179,11 +218,14 @@ namespace winsw
             var arguments = new StringBuilder();
             var argumentNodeList = (IList<string>)configurations.GetType().GetProperty(tagName).GetValue(configurations, null);
 
-            for (int i = 0; i < argumentNodeList.Count; i++)
+            foreach(var argument in argumentNodeList)
             {
                 arguments.Append(' ');
 
-                string token = Environment.ExpandEnvironmentVariables(argumentNodeList[i].InnerText);
+
+                //When creating YAML configurations file, should write it in the manner of write environment details as
+                //they can be replaced in ExpandEnvironmentVariables() method.
+                string token = Environment.ExpandEnvironmentVariables(argument);
 
                 if (token.StartsWith("\"") && token.EndsWith("\""))
                 {
