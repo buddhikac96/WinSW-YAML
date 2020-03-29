@@ -8,6 +8,7 @@ using winsw.Configuration;
 using winsw.Native;
 using winsw.Util;
 using WMI;
+using System.Xml.Schema;
 
 namespace winsw
 {
@@ -63,6 +64,16 @@ namespace winsw
             BaseName = baseName;
             BasePath = Path.Combine(d.FullName, BaseName);
 
+            try
+            {
+                ValidateXMLSchema();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            
+
             dom.Load(BasePath + ".xml");
 
             // register the base directory as environment variable so that future expansions can refer to this.
@@ -86,6 +97,30 @@ namespace winsw
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
         {
             this.dom = dom;
+        }
+
+        private void ValidateXMLSchema()
+        {
+            XmlReaderSettings booksettings = new XmlReaderSettings();
+            booksettings.Schemas.Add(null, BasePath + ".xsd");
+            booksettings.ValidationType = ValidationType.Schema;
+            booksettings.ValidationEventHandler += new ValidationEventHandler(booksSettingsValidationEventHandler);
+
+            XmlReader books = XmlReader.Create(BasePath + ".xml");
+
+            books.Read();
+        }
+
+        private void booksSettingsValidationEventHandler(object sender, ValidationEventArgs e)
+        {
+            if (e.Severity == XmlSeverityType.Warning)
+            {
+                throw new Exception("Warning in validation");
+            }
+            else if (e.Severity == XmlSeverityType.Error)
+            {
+                throw new Exception("Error in validation");
+            }
         }
 
         // ReSharper disable once InconsistentNaming
